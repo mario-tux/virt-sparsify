@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Two or more arguments should be submitted
+if [ $# -lt 2 ]
+then
+  echo "virt-sparsify: error: usage is: virt-sparsify [--options] indisk outdisk"
+  exit 1
+fi
+
+LAST=$#
+OUTPUT=$(realpath ${@:$LAST:1})
+INPUT=$(realpath ${@:$LAST-1:1})
+
+# Remaining atguments passed into container if more than two arguments submitted
+if [ $# -gt 2 ]
+then
+  ARGS=${@:1:$LAST-2}
+else
+  ARGS=""
+fi
+
+# Create a output file if it doesn't exist and raise an error if it isn't a regular file
+if [ ! -e $OUTPUT ]
+then
+  touch $OUTPUT
+elif [ ! -f $OUTPUT ]
+then
+  echo "$OUTPUT is not a regular file"
+  exit 1
+fi
+
+# Run a docker container
+docker run --rm -ti -v $INPUT:/tmp/input -v $OUTPUT:/tmp/output vitkhab/ubuntu-tools virt-sparsify $ARGS /tmp/input /tmp/output
